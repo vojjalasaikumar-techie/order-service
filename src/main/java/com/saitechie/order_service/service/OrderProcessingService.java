@@ -36,9 +36,9 @@ public class OrderProcessingService {
     @Value("${order.producer.kafka.topic}")
     private String topicName;
 
-    private static final String PAYMENTSERVICE_URL = "http://localhost:9292/payments";
+    private static final String PAYMENTSERVICE_URL = "http://PAYMENT-SERVICE/payments";
 
-    private static final String USERSERVICE_URL = "http://localhost:9090/users";
+    private static final String USERSERVICE_URL = "http://USER-SERVICE/users";
 
     public Order processOrder(Order order){
        log.info("In Process Order Service Method Sending the Order Details to the Kafka and Saving into the DB");
