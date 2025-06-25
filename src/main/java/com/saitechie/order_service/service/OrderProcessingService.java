@@ -9,9 +9,11 @@ import com.saitechie.order_service.entity.Order;
 import com.saitechie.order_service.repository.OrderRepository;
 
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -31,6 +33,7 @@ public class OrderProcessingService {
     private KafkaTemplate<String, String> kafkaTemplate;
 
     @Autowired
+    @Lazy
     private RestTemplate restTemplate;
 
     @Value("${order.producer.kafka.topic}")
@@ -52,6 +55,7 @@ public class OrderProcessingService {
         }
     }
 
+    @CircuitBreaker(name = "orderService", fallbackMethod = "getOrderFallbackMethod")
     public OrderResponseDTO getOrderDetails(String orderId){
         Order orderDTO = orderRepository.findByOrderId(orderId);
         PaymentDTO paymentDTO = restTemplate.getForObject(PAYMENTSERVICE_URL + "/" + orderDTO.getOrderId(), PaymentDTO.class);
@@ -63,6 +67,11 @@ public class OrderProcessingService {
                 .build();
     }
 
+    public OrderResponseDTO getOrderFallbackMethod(Exception ex) {
+        //you can call a DB
+        //you can invoke external api
+        return new OrderResponseDTO("FAILED", null, null, null);
+    }
 
 
 }
